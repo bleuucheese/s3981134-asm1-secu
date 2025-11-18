@@ -52,6 +52,7 @@ def load_results(json_path: Path) -> pd.DataFrame:
             'cycles_per_byte_decrypt': r.get('cycles_per_byte_decrypt', None),
             'overhead_bytes': r.get('overhead_bytes', 0),
             'ciphertext_size_bytes': r.get('ciphertext_size_bytes', 0),
+            'code_size_kb': r.get('code_size_kb', None),
         }
         if 'memory_stats' in r:
             record['mean_memory_mb'] = r['memory_stats'].get('mean_mb', None)
@@ -300,6 +301,15 @@ def generate_report(df: pd.DataFrame, hypothesis_results: Dict, stats_results: D
                       f"({'meets' if result['meets_median_threshold'] else 'fails'} threshold)")
         report.append(f" - P95: {result['total_p95_us']:.2f} µs "
                       f"({'meets' if result['meets_p95_threshold'] else 'fails'} threshold)")
+        report.append("")
+
+    code_sizes = df.groupby('algorithm')['code_size_kb'].first().dropna()
+    if not code_sizes.empty:
+        report.append("CODE SIZE FOOTPRINT (PYTHON PACKAGE SIZE)")
+        report.append("Measured as on-disk size of the imported module directory")
+        report.append("")
+        for algo, size_kb in sorted(code_sizes.items()):
+            report.append(f" {algo.upper():20s}: {size_kb:8.1f} KB")
         report.append("")
 
     # Statistical Analysis

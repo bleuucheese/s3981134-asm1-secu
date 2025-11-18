@@ -2,6 +2,7 @@
 cryptography>=41.0.0 # For AES-GCM, ChaCha20-Poly1305, ECDSA
 pycryptodomex>=3.19.0 # For RSA
 blake3>=0.3.3 # For BLAKE3 hashing
+ascon>=0.0.9 # For ASCON-128/128a AEAD benchmarks
 
 # Data Processing
 numpy>=1.24.0 # For vector operations and telemetry data

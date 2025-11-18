@@ -1,0 +1,21 @@
+# Cryptographic Libraries
+cryptography>=41.0.0 # For AES-GCM, ChaCha20-Poly1305, ECDSA
+pycryptodomex>=3.19.0 # For RSA
+blake3>=0.3.3 # For BLAKE3 hashing
+
+# Data Processing
+numpy>=1.24.0 # For vector operations and telemetry data
+pandas>=2.0.0 # For telemetry data tables
+
+# Statistical Analysis and Visualization
+scipy>=1.10.0 # For ANOVA and statistical tests
+matplotlib>=3.7.0 # For plotting and visualization
+seaborn>=0.12.0 # For statistical visualizations
+
+# Performance Measurement
+psutil>=5.9.0 # For memory and CPU monitoring
+
+# Optional: For vector search and homomorphic encryption experiments
+# Install these when running vector_search or homomorphic tests
+faiss-cpu>=1.7.4 # For vector search (test_vector_search.py)
+tenseal # For homomorphic encryption (test_homomorphic.py)

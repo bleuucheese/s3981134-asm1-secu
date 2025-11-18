@@ -1,0 +1,61 @@
+[
+  {
+    "task": "encrypted_mean_variance",
+    "num_rows": 100000,
+    "num_columns": 4,
+    "encrypt_time_s": 0.5825911999563687,
+    "compute_time_s": 0.006594699982088059,
+    "decrypt_time_s": 0.0052349999896250665,
+    "total_time_s": 0.5944208999280818,
+    "max_error": 49.962892743409874,
+    "relative_error": 0.9997858181214397,
+    "ciphertext_size_bytes": 334314,
+    "total_ciphertext_size_bytes": 33427635,
+    "plaintext_size_bytes": 3200000,
+    "expansion_factor": 10.4461359375,
+    "poly_modulus_degree": 8192,
+    "coeff_mod_bit_sizes": [
+      60,
+      40,
+      40,
+      60
+    ]
+  },
+  {
+    "task": "encrypted_dot_product",
+    "dimensions": 16,
+    "runs": 10,
+    "encrypt_stats": {
+      "mean_s": 0.013482609990751371,
+      "median_s": 0.012848299986217171,
+      "std_s": 0.0031368592304807552,
+      "min_s": 0.010033099970314652,
+      "max_s": 0.020933000021614134,
+      "ci_95_lower_s": 0.010167717473814264,
+      "ci_95_upper_s": 0.02001059001777321
+    },
+    "compute_stats": {
+      "mean_s": 0.012749839999014512,
+      "median_s": 0.01200914999935776,
+      "std_s": 0.0018948554135065471,
+      "min_s": 0.010490200016647577,
+      "max_s": 0.01620999997248873,
+      "ci_95_lower_s": 0.010589312511729076,
+      "ci_95_upper_s": 0.01618540748168016
+    },
+    "decrypt_stats": {
+      "mean_s": 0.001397299999371171,
+      "median_s": 0.0012685500259976834,
+      "std_s": 0.0003401553371562793,
+      "min_s": 0.001050200022291392,
+      "max_s": 0.0020244999905116856,
+      "ci_95_lower_s": 0.0010579850160866045,
+      "ci_95_upper_s": 0.002007872494868934
+    },
+    "max_error": 2.3990869522094727e-06,
+    "mean_error": 2.3558736756967846e-06,
+    "relative_error": 9.772189514478669e-06,
+    "ciphertext_size_bytes": 334280,
+    "expansion_factor": 5223.125
+  }
+]

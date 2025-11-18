@@ -1,0 +1,43 @@
+================================================================================
+HOMOMORPHIC ENCRYPTION ANALYTICS ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+This analysis evaluates CKKS homomorphic encryption for
+encrypted telemetry analytics in autonomous vehicle systems.
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+HYPOTHESIS SATISFACTION
+Threshold: <= 5 s total time, <= 0.001 relative error
+
+Encrypted Mean Variance: REJECTS
+ - Total time: 0.594 s
+ - Relative error: 1.00e+00
+
+Encrypted Dot Product: REJECTS
+ - Total time: nan s
+ - Relative error: 9.77e-06
+
+PERFORMANCE COMPARISON
+--------------------------------------------------------------------------------
+
+Encrypted Mean Variance:
+ - Encrypt: 0.583 s
+ - Compute: 0.007 s
+ - Decrypt: 0.005 s
+ - Total: 0.594 s
+ - Relative error: 1.00e+00
+ - Expansion: 10.4x
+
+Encrypted Dot Product:
+ - Encrypt: nan s
+ - Compute: nan s
+ - Decrypt: nan s
+ - Total: nan s
+ - Relative error: 9.77e-06
+ - Expansion: 5223.1x
+
+================================================================================

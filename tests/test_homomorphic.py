@@ -34,11 +34,24 @@ def calculate_statistics(times):
     }
 
 
+def _json_safe(obj):
+    """Convert numpy/Path objects into JSON-safe primitives."""
+    if isinstance(obj, np.generic):
+        return obj.item()
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, Path):
+        return str(obj)
+    if isinstance(obj, (set, tuple)):
+        return list(obj)
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
 def save_results(results, output_path):
     """Save results to JSON file."""
     import json
     with open(output_path, 'w') as f:
-        json.dump(results, f, indent=2)
+        json.dump(results, f, indent=2, default=_json_safe)
 
 
 class HomomorphicAnalyticsBenchmark:

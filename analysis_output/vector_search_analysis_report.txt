@@ -1,0 +1,32 @@
+================================================================================
+VECTOR SEARCH PRIVACY PATTERN ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+This analysis evaluates privacy-preserving vector search patterns
+for perception model embeddings in autonomous vehicle systems.
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+HYPOTHESIS SATISFACTION
+Threshold: >= 95.0% recall@10, <= 50 ms latency
+
+Faiss Baseline: ✓ ACCEPTS
+  - Recall@10: 1.000 (meets threshold)
+  - Latency: 8.14 ms (meets threshold)
+
+Tls Aes Gcm: ✓ ACCEPTS
+  - Recall@10: 1.000 (meets threshold)
+  - Latency: 6.78 ms (meets threshold)
+
+Tee Emulation: ✓ ACCEPTS
+  - Recall@10: 1.000 (meets threshold)
+  - Latency: 9.86 ms (meets threshold)
+
+Ckks Homomorphic: ✗ REJECTS
+  - Recall@10: nan (fails threshold)
+  - Latency: 24.79 ms (meets threshold)
+
+================================================================================

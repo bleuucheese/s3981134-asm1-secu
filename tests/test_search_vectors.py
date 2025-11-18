@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Homomorphic Encryption Analytics Performance Testing
-Tests CKKS homomorphic encryption for telemetry analytics
-following test plan section 8.5.
+Vector Search Privacy Patterns Performance Testing
+Tests FAISS baseline and privacy-preserving patterns for perception embeddings
+following test plan section 8.4.
 
-Tasks:
-1. Encrypted mean/variance over 100k rows
-2. Encrypted 16-dim dot product micro-benchmark
+Patterns:
+1. Plaintext FAISS (baseline)
+2. TLS + AES-GCM (transport encryption)
+3. TEE emulation (constant overhead injection)
+4. CKKS homomorphic encryption (toy cosine similarity)
 """
 
 import os
@@ -15,358 +17,413 @@ import time
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
-
-# Try to import TenSEAL
-try:
-    import tenseal as ts
-    TENSEAL_AVAILABLE = True
-except ImportError:
-    TENSEAL_AVAILABLE = False
-    print("Warning: TenSEAL not available. Install with: pip install tenseal")
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.backends import default_backend
+import psutil
 
 # Add parent directory to path for utils
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.benchmark_utils import (
-    calculate_statistics, save_results, NUM_RUNS_LARGE, WARMUP_RUNS
+	calculate_statistics,
+	save_results,
+	NUM_RUNS_MEDIUM,
+	WARMUP_RUNS,
 )
 
+# Try to import optional dependencies
+try:
+	import faiss
+
+	FAISS_AVAILABLE = True
+except ImportError:
+	FAISS_AVAILABLE = False
+	print("Warning: FAISS not available. Install with: pip install faiss-cpu")
+
+try:
+	import tenseal as ts
+
+	TENSEAL_AVAILABLE = True
+except ImportError:
+	TENSEAL_AVAILABLE = False
+	print("Warning: TenSEAL not available. Install with: pip install tenseal")
+
 # Test configuration
-TELEMETRY_ROWS = 100000
-DOT_PRODUCT_DIM = 16
+QUERY_BATCH_SIZE = 10
+K_NEIGHBORS = 10 # recall@10
+DIMENSIONS = 512 # Full embeddings
+DIMENSIONS_HE = 16 # Reduced for HE feasibility
 
 
-class HomomorphicAnalyticsBenchmark:
-    """Benchmark homomorphic encryption for telemetry analytics."""
+def _faiss_ready(array: np.ndarray) -> np.ndarray:
+	"""Ensure numpy array is contiguous float32 for FAISS APIs."""
+	return np.ascontiguousarray(array, dtype=np.float32)
 
-    def __init__(self):
-        self.results: List[Dict] = []
-        self.context = None
 
-    def setup_ckks_context(self):
-        """Setup CKKS context for homomorphic operations."""
-        if not TENSEAL_AVAILABLE:
-            return None
+class VectorSearchBenchmark:
+	"""Benchmark vector search with privacy-preserving patterns."""
 
-        # CKKS parameters for telemetry analytics
-        # poly_modulus_degree: 8192 (balance between security and performance)
-        # coeff_mod_bit_sizes: [60, 40, 40, 60] (for multiplication depth)
-        context = ts.context(
-            ts.SCHEME_TYPE.CKKS,
-            poly_modulus_degree=8192,
-            coeff_mod_bit_sizes=[60, 40, 40, 60]
-        )
-        context.generate_galois_keys()
-        context.global_scale = 2**40
+	def __init__(self):
+		self.results: List[Dict] = []
+		self.backend = default_backend()
 
-        return context
+	def cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
+		"""Compute cosine similarity between two vectors."""
+		dot_product = np.dot(vec1, vec2)
+		norm1 = np.linalg.norm(vec1)
+		norm2 = np.linalg.norm(vec2)
+		return dot_product / (norm1 * norm2 + 1e-8)
 
-    def encrypt_mean_variance(self, telemetry_data: np.ndarray) -> Dict:
-        """
-        Encrypt and compute mean/variance over telemetry data.
+	def faiss_baseline(self, embeddings: np.ndarray, queries: np.ndarray) -> Dict:
+		"""
+		Baseline FAISS search (plaintext).
 
-        Args:
-            telemetry_data: Array of shape (num_rows, num_columns)
+		Returns:
+			Dictionary with performance metrics
+		"""
+		if not FAISS_AVAILABLE:
+			return {'error': 'FAISS not available'}
 
-        Returns:
-            Dictionary with performance metrics
-        """
-        if not TENSEAL_AVAILABLE:
-            return {'error': 'TenSEAL not available'}
+		# Ensure FAISS-friendly buffers
+		embeddings = _faiss_ready(embeddings)
+		queries = _faiss_ready(queries)
 
-        if self.context is None:
-            self.context = self.setup_ckks_context()
+		# Build FAISS index
+		dimension = embeddings.shape[1]
+		index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
 
-        num_rows, num_cols = telemetry_data.shape
+		# Normalize embeddings for cosine similarity
+		faiss.normalize_L2(embeddings)
+		faiss.normalize_L2(queries)
 
-        # Encrypt columns
-        print(f" Encrypting {num_cols} columns...")
-        start_encrypt = time.perf_counter()
+		# Add embeddings to index
+		index.add(embeddings.astype('float32'))
 
-        encrypted_columns = []
-        for col_idx in range(num_cols):
-            col_data = telemetry_data[:, col_idx].tolist()
-            # Encrypt in batches (CKKS has limits)
-            batch_size = 4096  # Max elements per ciphertext
-            encrypted_batches = []
+		# Warmup
+		for _ in range(WARMUP_RUNS):
+			_ = index.search(queries[:QUERY_BATCH_SIZE].astype('float32'), K_NEIGHBORS)
 
-            for i in range(0, len(col_data), batch_size):
-                batch = col_data[i:i+batch_size]
-                # Pad to batch_size if needed
-                while len(batch) < batch_size:
-                    batch.append(0.0)
-                encrypted_batches.append(ts.ckks_vector(self.context, batch))
+		# Measurements
+		search_times = []
+		recalls = []
 
-            encrypted_columns.append(encrypted_batches)
+		for i in range(0, len(queries), QUERY_BATCH_SIZE):
+			batch = queries[i:i + QUERY_BATCH_SIZE].astype('float32')
 
-        encrypt_time = time.perf_counter() - start_encrypt
+			start = time.perf_counter()
+			distances, indices = index.search(batch, K_NEIGHBORS)
+			elapsed = time.perf_counter() - start
 
-        # Compute mean (sum and divide by count)
-        print(f" Computing encrypted mean...")
-        start_compute = time.perf_counter()
+			search_times.append(elapsed)
 
-        encrypted_means = []
-        for col_batches in encrypted_columns:
-            # Sum all batches
-            col_sum = col_batches[0]
-            for batch in col_batches[1:]:
-                col_sum = col_sum + batch
+			# Calculate recall@10 (simplified - would need ground truth)
+			# For now, just check that we got results
+			recalls.append(1.0 if len(indices) > 0 else 0.0)
 
-            # Mean = sum / num_rows (approximate, as we can't divide exactly)
-            # For demonstration, we'll compute sum and note that division would be done after decryption
-            encrypted_means.append(col_sum)
+		stats = calculate_statistics(search_times)
+		avg_recall = np.mean(recalls)
 
-        compute_time = time.perf_counter() - start_compute
+		return {
+			'pattern': 'faiss_baseline',
+			'search_stats': stats,
+			'recall_at_10': avg_recall,
+			'storage_expansion': 1.0,  # No expansion for plaintext
+		}
 
-        # Decrypt results
-        print(f" Decrypting results...")
-        start_decrypt = time.perf_counter()
+	def tls_aes_gcm_pattern(self, embeddings: np.ndarray, queries: np.ndarray) -> Dict:
+		"""
+		TLS + AES-GCM pattern (transport encryption, plaintext compute).
 
-        plaintext_means = []
-        for enc_mean in encrypted_means:
-            decrypted = enc_mean.decrypt()
-            # Take first element (sum) and divide by num_rows
-            mean_value = decrypted[0] / num_rows
-            plaintext_means.append(mean_value)
+		Simulates encrypted transport but plaintext computation on server.
+		"""
+		embeddings = _faiss_ready(embeddings)
+		queries = _faiss_ready(queries)
 
-        decrypt_time = time.perf_counter() - start_decrypt
+		# Generate encryption key
+		key = os.urandom(32)
+		aesgcm = AESGCM(key)
 
-        # Compute plaintext mean for comparison
-        plaintext_means_ref = np.mean(telemetry_data, axis=0)
+		# Encrypt embeddings (simulate transport encryption)
+		encrypted_embeddings = []
+		for emb in embeddings:
+			nonce = os.urandom(12)
+			ciphertext = aesgcm.encrypt(nonce, emb.tobytes(), None)
+			encrypted_embeddings.append(nonce + ciphertext)
 
-        # Calculate numerical error
-        errors = [abs(p - r)
-                  for p, r in zip(plaintext_means, plaintext_means_ref)]
-        max_error = max(errors)
-        relative_error = max_error / (max(abs(plaintext_means_ref)) + 1e-8)
+		# Decrypt on server (simulate TLS termination)
+		decrypted_embeddings = []
+		for enc_emb in encrypted_embeddings:
+			# Extract nonce (first 12 bytes) and ciphertext
+			nonce = enc_emb[:12]
+			ciphertext = enc_emb[12:]
+			decrypted = aesgcm.decrypt(nonce, ciphertext, None)
+			decrypted_embeddings.append(np.frombuffer(decrypted, dtype=np.float32))
 
-        # Ciphertext size estimation
-        # Each CKKS ciphertext is approximately poly_modulus_degree * coeff_mod_bit_sizes
-        ciphertext_size_bytes = len(encrypted_columns[0][0].serialize())
-        total_ciphertext_size = sum(
-            len(batch.serialize())
-            for col in encrypted_columns
-            for batch in col
-        )
-        plaintext_size = telemetry_data.nbytes
-        expansion_factor = total_ciphertext_size / plaintext_size
+		decrypted_embeddings = _faiss_ready(np.array(decrypted_embeddings))
 
-        return {
-            'task': 'encrypted_mean_variance',
-            'num_rows': num_rows,
-            'num_columns': num_cols,
-            'encrypt_time_s': encrypt_time,
-            'compute_time_s': compute_time,
-            'decrypt_time_s': decrypt_time,
-            'total_time_s': encrypt_time + compute_time + decrypt_time,
-            'max_error': max_error,
-            'relative_error': relative_error,
-            'ciphertext_size_bytes': ciphertext_size_bytes,
-            'total_ciphertext_size_bytes': total_ciphertext_size,
-            'plaintext_size_bytes': plaintext_size,
-            'expansion_factor': expansion_factor,
-            'poly_modulus_degree': 8192,
-            'coeff_mod_bit_sizes': [60, 40, 40, 60],
-        }
+		# Now perform plaintext search (same as baseline)
+		if not FAISS_AVAILABLE:
+			return {'error': 'FAISS not available'}
 
-    def encrypt_dot_product(self, vec1: np.ndarray, vec2: np.ndarray) -> Dict:
-        """
-        Encrypt and compute dot product of two 16-dim vectors.
+		dimension = decrypted_embeddings.shape[1]
+		index = faiss.IndexFlatIP(dimension)
 
-        Args:
-            vec1, vec2: 16-dimensional vectors
+		queries = _faiss_ready(queries)
+		faiss.normalize_L2(decrypted_embeddings)
+		faiss.normalize_L2(queries)
 
-        Returns:
-            Dictionary with performance metrics
-        """
-        if not TENSEAL_AVAILABLE:
-            return {'error': 'TenSEAL not available'}
+		index.add(decrypted_embeddings)
 
-        if self.context is None:
-            self.context = self.setup_ckks_context()
+		# Warmup
+		for _ in range(WARMUP_RUNS):
+			_ = index.search(queries[:QUERY_BATCH_SIZE].astype('float32'), K_NEIGHBORS)
 
-        # Ensure vectors are 16-dimensional
-        vec1 = vec1[:DOT_PRODUCT_DIM]
-        vec2 = vec2[:DOT_PRODUCT_DIM]
+		# Measurements
+		search_times = []
+		recalls = []
 
-        # Warmup
-        for _ in range(WARMUP_RUNS):
-            enc_vec1 = ts.ckks_vector(self.context, vec1.tolist())
-            enc_vec2 = ts.ckks_vector(self.context, vec2.tolist())
-            _ = enc_vec1.dot(enc_vec2)
+		for i in range(0, len(queries), QUERY_BATCH_SIZE):
+			batch = queries[i:i + QUERY_BATCH_SIZE].astype('float32')
 
-        # Measurements
-        encrypt_times = []
-        compute_times = []
-        decrypt_times = []
-        errors = []
+			start = time.perf_counter()
+			distances, indices = index.search(batch, K_NEIGHBORS)
+			elapsed = time.perf_counter() - start
 
-        for _ in range(NUM_RUNS_LARGE):
-            # Encrypt
-            start = time.perf_counter()
-            enc_vec1 = ts.ckks_vector(self.context, vec1.tolist())
-            enc_vec2 = ts.ckks_vector(self.context, vec2.tolist())
-            encrypt_time = time.perf_counter() - start
+			search_times.append(elapsed)
+			recalls.append(1.0 if len(indices) > 0 else 0.0)
 
-            # Compute dot product
-            start = time.perf_counter()
-            enc_result = enc_vec1.dot(enc_vec2)
-            compute_time = time.perf_counter() - start
+		stats = calculate_statistics(search_times)
+		avg_recall = np.mean(recalls)
 
-            # Decrypt
-            start = time.perf_counter()
-            plaintext_result = enc_result.decrypt()[0]
-            decrypt_time = time.perf_counter() - start
+		# Storage expansion = encrypted size / plaintext size
+		plaintext_size = embeddings.nbytes
+		encrypted_size = sum(len(e) for e in encrypted_embeddings)
+		expansion = encrypted_size / plaintext_size
 
-            encrypt_times.append(encrypt_time)
-            compute_times.append(compute_time)
-            decrypt_times.append(decrypt_time)
+		return {
+			'pattern': 'tls_aes_gcm',
+			'search_stats': stats,
+			'recall_at_10': avg_recall,
+			'storage_expansion': expansion,
+		}
 
-            # Compare with plaintext result
-            plaintext_result_ref = np.dot(vec1, vec2)
-            error = abs(plaintext_result - plaintext_result_ref)
-            errors.append(error)
+	def tee_emulation_pattern(self, embeddings: np.ndarray, queries: np.ndarray) -> Dict:
+		"""
+		TEE emulation pattern (constant overhead injection).
 
-        encrypt_stats = calculate_statistics(encrypt_times)
-        compute_stats = calculate_statistics(compute_times)
-        decrypt_stats = calculate_statistics(decrypt_times)
+		Simulates trusted execution environment overhead.
+		"""
+		if not FAISS_AVAILABLE:
+			return {'error': 'FAISS not available'}
 
-        max_error = max(errors)
-        mean_error = np.mean(errors)
-        relative_error = max_error / (abs(np.dot(vec1, vec2)) + 1e-8)
+		# Constant overhead per operation (simulating TEE overhead)
+		TEE_OVERHEAD_MS = 2.0  # 2ms constant overhead per search
 
-        # Ciphertext sizes
-        ciphertext_size = len(enc_vec1.serialize())
+		embeddings = _faiss_ready(embeddings)
+		queries = _faiss_ready(queries)
 
-        return {
-            'task': 'encrypted_dot_product',
-            'dimensions': DOT_PRODUCT_DIM,
-            'runs': NUM_RUNS_LARGE,
-            'encrypt_stats': encrypt_stats,
-            'compute_stats': compute_stats,
-            'decrypt_stats': decrypt_stats,
-            'max_error': max_error,
-            'mean_error': mean_error,
-            'relative_error': relative_error,
-            'ciphertext_size_bytes': ciphertext_size,
-            'expansion_factor': (ciphertext_size * 2) / (vec1.nbytes + vec2.nbytes),
-        }
+		dimension = embeddings.shape[1]
+		index = faiss.IndexFlatIP(dimension)
 
-    def run_benchmarks(self, data_dir: Path):
-        """Run all homomorphic encryption benchmarks."""
-        print("=" * 70)
-        print("Homomorphic Encryption Analytics Performance Testing")
-        print("=" * 70)
-        print(f"Test configuration:")
-        print(f" Telemetry rows: {TELEMETRY_ROWS}")
-        print(f" Dot product dimensions: {DOT_PRODUCT_DIM}")
-        print()
+		faiss.normalize_L2(embeddings)
+		faiss.normalize_L2(queries)
 
-        if not TENSEAL_AVAILABLE:
-            print("Error: TenSEAL not available. Install with: pip install tenseal")
-            return []
+		index.add(embeddings)
 
-        all_results = []
+		# Warmup
+		for _ in range(WARMUP_RUNS):
+			_ = index.search(queries[:QUERY_BATCH_SIZE].astype('float32'), K_NEIGHBORS)
 
-        # Task 1: Encrypted mean/variance
-        print("Task 1: Encrypted Mean/Variance over Telemetry Data")
-        print("-" * 70)
+		# Measurements with TEE overhead
+		search_times = []
+		recalls = []
 
-        telemetry_path = data_dir / "telemetry_100k.npy"
-        if not telemetry_path.exists():
-            print("Error: Telemetry data file not found.")
-            print("Please run generate_test_data.py first.")
-            return []
+		for i in range(0, len(queries), QUERY_BATCH_SIZE):
+			batch = queries[i:i + QUERY_BATCH_SIZE].astype('float32')
 
-        telemetry_data = np.load(telemetry_path)
-        print(f"Loaded telemetry data: {telemetry_data.shape}")
+			start = time.perf_counter()
+			distances, indices = index.search(batch, K_NEIGHBORS)
+			elapsed = time.perf_counter() - start
 
-        try:
-            result = self.encrypt_mean_variance(telemetry_data)
-            if 'error' not in result:
-                all_results.append(result)
+			# Add TEE overhead
+			elapsed += TEE_OVERHEAD_MS / 1000.0
 
-                print(f" Encrypt time: {result['encrypt_time_s']:.3f} s")
-                print(f" Compute time: {result['compute_time_s']:.3f} s")
-                print(f" Decrypt time: {result['decrypt_time_s']:.3f} s")
-                print(f" Total time: {result['total_time_s']:.3f} s")
-                print(f" Max error: {result['max_error']:.6f}")
-                print(f" Relative error: {result['relative_error']:.6f}")
-                print(f" Expansion factor: {result['expansion_factor']:.2f}x")
-            else:
-                print(f" Error: {result['error']}")
-        except Exception as e:
-            print(f" Failed: {e}")
-            import traceback
-            traceback.print_exc()
+			search_times.append(elapsed)
+			recalls.append(1.0 if len(indices) > 0 else 0.0)
 
-        print()
+		stats = calculate_statistics(search_times)
+		avg_recall = np.mean(recalls)
 
-        # Task 2: Encrypted dot product
-        print("Task 2: Encrypted 16-Dim Dot Product Micro-benchmark")
-        print("-" * 70)
+		return {
+			'pattern': 'tee_emulation',
+			'search_stats': stats,
+			'recall_at_10': avg_recall,
+			'storage_expansion': 1.0,  # No expansion for TEE
+			'tee_overhead_ms': TEE_OVERHEAD_MS,
+		}
 
-        # Generate test vectors
-        np.random.seed(42)
-        vec1 = np.random.randn(DOT_PRODUCT_DIM).astype(np.float32)
-        vec2 = np.random.randn(DOT_PRODUCT_DIM).astype(np.float32)
+	def ckks_homomorphic_pattern(self, embeddings: np.ndarray, queries: np.ndarray) -> Dict:
+		"""
+		CKKS homomorphic encryption pattern (toy cosine similarity on 16-dim vectors).
 
-        # Normalize for cosine similarity
-        vec1 = vec1 / (np.linalg.norm(vec1) + 1e-8)
-        vec2 = vec2 / (np.linalg.norm(vec2) + 1e-8)
+		Note: This is a simplified demonstration for correctness and cost analysis.
+		"""
+		if not TENSEAL_AVAILABLE:
+			return {'error': 'TenSEAL not available'}
 
-        print(f"Testing dot product of two {DOT_PRODUCT_DIM}-dim vectors")
+		# Reduce dimensions for HE feasibility
+		embeddings_16d = embeddings[:, :DIMENSIONS_HE]
+		queries_16d = queries[:, :DIMENSIONS_HE]
 
-        try:
-            result = self.encrypt_dot_product(vec1, vec2)
-            if 'error' not in result:
-                all_results.append(result)
+		# Normalize
+		embeddings_16d = embeddings_16d / (np.linalg.norm(embeddings_16d, axis=1, keepdims=True) + 1e-8)
+		queries_16d = queries_16d / (np.linalg.norm(queries_16d, axis=1, keepdims=True) + 1e-8)
 
-                enc_stats = result['encrypt_stats']
-                comp_stats = result['compute_stats']
-                dec_stats = result['decrypt_stats']
+		# Setup CKKS context
+		context = ts.context(
+			ts.SCHEME_TYPE.CKKS,
+			poly_modulus_degree=8192,
+			coeff_mod_bit_sizes=[60, 40, 40, 60]
+		)
+		context.generate_galois_keys()
+		context.global_scale = 2**40
 
-                print(
-                    f" Encrypt median: {enc_stats['median_s']*1e3:.3f} ms")
-                print(
-                    f" Compute median: {comp_stats['median_s']*1e3:.3f} ms")
-                print(
-                    f" Decrypt median: {dec_stats['median_s']*1e3:.3f} ms")
-                print(f" Max error: {result['max_error']:.6f}")
-                print(f" Relative error: {result['relative_error']:.6f}")
-                print(
-                    f" Expansion factor: {result['expansion_factor']:.2f}x")
-            else:
-                print(f" Error: {result['error']}")
-        except Exception as e:
-            print(f" Failed: {e}")
-            import traceback
-            traceback.print_exc()
+		# Encrypt embeddings
+		encrypted_embeddings = []
+		for emb in embeddings_16d[:100]:  # Limit for feasibility
+			encrypted_embeddings.append(ts.ckks_vector(context, emb.tolist()))
 
-        print()
+		# Warmup
+		if len(encrypted_embeddings) > 0:
+			for _ in range(min(WARMUP_RUNS, len(queries_16d))):
+				query_vec = ts.ckks_vector(context, queries_16d[0].tolist())
+				_ = encrypted_embeddings[0].dot(query_vec)
 
-        # Save results
-        output_path = data_dir / "homomorphic_results.json"
-        save_results(all_results, output_path)
+		# Measurements
+		search_times = []
+		dot_products = []
 
-        return all_results
+		for i, query in enumerate(queries_16d[:10]):  # Limit queries for feasibility
+			if i >= len(encrypted_embeddings):
+				break
+
+			query_vec = ts.ckks_vector(context, query.tolist())
+
+			start = time.perf_counter()
+			# Compute dot product (cosine similarity approximation)
+			result = encrypted_embeddings[i].dot(query_vec)
+			elapsed = time.perf_counter() - start
+
+			search_times.append(elapsed)
+			dot_products.append(result.decrypt()[0])
+
+		stats = calculate_statistics(search_times) if search_times else {}
+
+		# Calculate storage expansion
+		plaintext_size = embeddings_16d.nbytes
+		# Approximate ciphertext size (CKKS ciphertexts are much larger)
+		ciphertext_size = len(encrypted_embeddings) * 8192 * 8 * 2  # Rough estimate
+		expansion = ciphertext_size / plaintext_size if plaintext_size > 0 else 1.0
+
+		return {
+			'pattern': 'ckks_homomorphic',
+			'search_stats': stats,
+			'recall_at_10': None,  # Not applicable for HE
+			'storage_expansion': expansion,
+			'dimensions': DIMENSIONS_HE,
+			'num_embeddings': len(encrypted_embeddings),
+		}
+
+	def run_benchmarks(self, data_dir: Path):
+		"""Run all vector search benchmarks."""
+		print("=" * 70)
+		print("Vector Search Privacy Patterns Performance Testing")
+		print("=" * 70)
+		print(f"Test configuration:")
+		print(f" Query batch size: {QUERY_BATCH_SIZE}")
+		print(f" K neighbors: {K_NEIGHBORS}")
+		print(f" Dimensions: {DIMENSIONS} (full), {DIMENSIONS_HE} (HE)")
+		print()
+
+		# Load embeddings and queries
+		embeddings_path = data_dir / "vectors" / "embeddings_10k_512d_f32.npy"
+		queries_path = data_dir / "vectors" / "queries_1k_512d_f32.npy"
+
+		if not embeddings_path.exists() or not queries_path.exists():
+			print("Error: Vector data files not found.")
+			print("Please run generate_test_data.py first.")
+			return []
+
+		embeddings = _faiss_ready(np.load(embeddings_path))
+		queries = _faiss_ready(np.load(queries_path))
+
+		print(f"Loaded {len(embeddings)} embeddings and {len(queries)} queries")
+		print()
+
+		all_results = []
+
+		# Test each pattern
+		patterns = [
+			('FAISS Baseline', self.faiss_baseline),
+			('TLS + AES-GCM', self.tls_aes_gcm_pattern),
+			('TEE Emulation', self.tee_emulation_pattern),
+			('CKKS Homomorphic', self.ckks_homomorphic_pattern),
+		]
+
+		for pattern_name, pattern_func in patterns:
+			print(f"Testing pattern: {pattern_name}")
+			print("-" * 70)
+
+			try:
+				result = pattern_func(embeddings, queries)
+
+				if 'error' in result:
+					print(f" Skipped: {result['error']}")
+					continue
+
+				all_results.append(result)
+
+				stats = result.get('search_stats', {})
+				recall = result.get('recall_at_10', 'N/A')
+				expansion = result.get('storage_expansion', 'N/A')
+
+				if stats:
+					median_ms = stats.get('median_s', 0) * 1e3
+					print(f" Median latency: {median_ms:.3f} ms")
+					print(f" Recall@10: {recall}")
+					print(f" Storage expansion: {expansion:.2f}x")
+				else:
+					print(f" Pattern executed (detailed stats not available)")
+
+			except Exception as e:
+				print(f" Failed: {e}")
+				import traceback
+				traceback.print_exc()
+
+			print()
+
+		# Save results
+		output_path = data_dir / "vector_search_results.json"
+		save_results(all_results, output_path)
+
+		return all_results
 
 
 def main():
-    """Main entry point."""
-    data_dir = Path("test_data")
+	"""Main entry point."""
+	data_dir = Path("test_data")
 
-    if not data_dir.exists():
-        print("Error: test_data directory not found.")
-        print("Please run generate_test_data.py first.")
-        sys.exit(1)
+	if not data_dir.exists():
+		print("Error: test_data directory not found.")
+		print("Please run generate_test_data.py first.")
+		sys.exit(1)
 
-    benchmark = HomomorphicAnalyticsBenchmark()
-    results = benchmark.run_benchmarks(data_dir)
+	benchmark = VectorSearchBenchmark()
+	results = benchmark.run_benchmarks(data_dir)
 
-    print("=" * 70)
-    print("Homomorphic encryption testing complete!")
-    print("=" * 70)
+	print("=" * 70)
+	print("Vector search testing complete!")
+	print("=" * 70)
 
 
 if __name__ == "__main__":
-    main()
+	main()

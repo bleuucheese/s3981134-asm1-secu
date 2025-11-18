@@ -1,0 +1,53 @@
+================================================================================
+ASYMMETRIC SIGNATURE PERFORMANCE ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+This analysis evaluates asymmetric signature algorithms (ECDSA P-256,
+RSA-2048) for V2X Basic Safety Message signing in autonomous
+vehicle systems.
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+HYPOTHESIS SATISFACTION (300 B BSM)
+Threshold: ≤ 3 ms verify, ≤ 128 B signature
+
+ECDSA_P256: ✓ ACCEPTS
+ - Verify: 0.129 ms (meets threshold)
+ - Signature size: 71 B (meets threshold)
+
+RSA_2048: ✗ REJECTS
+ - Verify: 0.042 ms (meets threshold)
+ - Signature size: 256 B (fails threshold)
+
+STATISTICAL ANALYSIS (ANOVA) FOR 300 B BSM VERIFICATION
+--------------------------------------------------------------------------------
+ANOVA F-statistic: 260.1634
+ANOVA p-value: 0.0000
+Conclusion: There is a statistically significant difference between algorithm verification latencies.
+
+Tukey's HSD Post-Hoc Test Results:
+Pairwise Group Comparisons (95.0% Confidence Interval)
+Comparison  Statistic  p-value  Lower CI  Upper CI
+ (0 - 1)      0.119     0.000     0.104     0.133
+ (1 - 0)     -0.119     0.000    -0.133    -0.104
+
+
+PERFORMANCE COMPARISON
+--------------------------------------------------------------------------------
+
+Message Size: 200 bytes
+ ECDSA_P256          : Sign:  0.031 ms, Verify:  0.076 ms, Signature:   71 B
+ RSA_2048            : Sign:  0.696 ms, Verify:  0.034 ms, Signature:  256 B
+
+Message Size: 300 bytes
+ ECDSA_P256          : Sign:  0.054 ms, Verify:  0.129 ms, Signature:   71 B
+ RSA_2048            : Sign:  0.827 ms, Verify:  0.042 ms, Signature:  256 B
+
+Message Size: 800 bytes
+ ECDSA_P256          : Sign:  0.043 ms, Verify:  0.103 ms, Signature:   71 B
+ RSA_2048            : Sign:  0.671 ms, Verify:  0.033 ms, Signature:  256 B
+
+================================================================================

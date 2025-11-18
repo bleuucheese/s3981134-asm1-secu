@@ -1,0 +1,44 @@
+================================================================================
+HASH FUNCTION PERFORMANCE ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+This analysis evaluates the performance of three hash functions
+(SHA-256, SHA-3, BLAKE3) for OTA update integrity verification
+in autonomous vehicle systems.
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+1. Best Overall Performer: BLAKE3_PARALLEL
+   - Throughput: 1.04 GB/s
+   - File Size: 50 MB
+
+2. HYPOTHESIS SATISFACTION (1 GB File)
+   Threshold: >= 1.5 GB/s throughput, <= 12 minutes execution time
+
+   SHA256: ✗ REJECTS
+   - Throughput: 0.71 GB/s (fails threshold)
+   - Time: 0.02 minutes (meets threshold)
+
+   SHA3_256: ✗ REJECTS
+   - Throughput: 0.14 GB/s (fails threshold)
+   - Time: 0.12 minutes (meets threshold)
+
+   BLAKE3: ✗ REJECTS
+   - Throughput: 0.85 GB/s (fails threshold)
+   - Time: 0.02 minutes (meets threshold)
+
+   BLAKE3_PARALLEL: ✗ REJECTS
+   - Throughput: 0.84 GB/s (fails threshold)
+   - Time: 0.02 minutes (meets threshold)
+
+3. STATISTICAL ANALYSIS (ANOVA) FOR 1 GB FILE THROUGHPUT
+--------------------------------------------------------------------------------
+ANOVA F-statistic: nan
+ANOVA p-value: nan
+Conclusion: There is no statistically significant difference between algorithm throughputs.
+
+================================================================================

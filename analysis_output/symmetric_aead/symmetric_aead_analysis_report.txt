@@ -1,0 +1,54 @@
+================================================================================
+SYMMETRIC AEAD PERFORMANCE ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+This analysis evaluates symmetric AEAD algorithms (AES-GCM,
+ChaCha20-Poly1305) for ECU control frame encryption in
+autonomous vehicle systems.
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+HYPOTHESIS SATISFACTION (64 B Frames)
+Threshold: ≤ 100 µs median, ≤ 200 µs p95
+
+AES_GCM: ✓ ACCEPTS
+ - Median: 12.10 µs (meets threshold)
+ - P95: 0.00 µs (meets threshold)
+
+CHACHA20_POLY1305: ✓ ACCEPTS
+ - Median: 12.45 µs (meets threshold)
+ - P95: 0.00 µs (meets threshold)
+
+STATISTICAL ANALYSIS (ANOVA) FOR 64 B FRAMES
+--------------------------------------------------------------------------------
+ANOVA F-statistic: 0.4981
+ANOVA p-value: 0.4804
+Conclusion: There is no statistically significant difference between algorithm latencies.
+
+PERFORMANCE COMPARISON
+--------------------------------------------------------------------------------
+
+Message Size: 8 bytes
+ AES_GCM             : Median:   6.95 µs, P95:   0.00 µs
+ CHACHA20_POLY1305   : Median:   7.90 µs, P95:   0.00 µs
+
+Message Size: 16 bytes
+ AES_GCM             : Median:  16.75 µs, P95:   0.00 µs
+ CHACHA20_POLY1305   : Median:  10.90 µs, P95:   0.00 µs
+
+Message Size: 32 bytes
+ AES_GCM             : Median:  11.00 µs, P95:   0.00 µs
+ CHACHA20_POLY1305   : Median:  14.00 µs, P95:   0.00 µs
+
+Message Size: 64 bytes
+ AES_GCM             : Median:  12.10 µs, P95:   0.00 µs
+ CHACHA20_POLY1305   : Median:  12.45 µs, P95:   0.00 µs
+
+Message Size: 128 bytes
+ AES_GCM             : Median:  10.95 µs, P95:   0.00 µs
+ CHACHA20_POLY1305   : Median:  11.40 µs, P95:   0.00 µs
+
+================================================================================

@@ -1,0 +1,422 @@
+[
+  {
+    "algorithm": "aes_gcm",
+    "message_size_bytes": 8,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 5.062201526015997e-06,
+      "median_s": 3.6999699659645557e-06,
+      "std_s": 1.284506141921682e-05,
+      "min_s": 3.0999653972685337e-06,
+      "max_s": 0.0002964999875985086,
+      "ci_95_lower_s": 3.200024366378784e-06,
+      "ci_95_upper_s": 8.200004231184721e-06
+    },
+    "decrypt_stats": {
+      "mean_s": 3.779898630455136e-06,
+      "median_s": 3.2999669201672077e-06,
+      "std_s": 2.7369267764138223e-06,
+      "min_s": 2.800021320581436e-06,
+      "max_s": 4.4899992644786835e-05,
+      "ci_95_lower_s": 2.9974660719744864e-06,
+      "ci_95_upper_s": 6.599992047995329e-06
+    },
+    "total_stats": {
+      "mean_s": 8.842100156471134e-06,
+      "median_s": 6.950023816898465e-06,
+      "std_s": 1.3807793229492943e-05,
+      "min_s": 5.999987479299307e-06,
+      "max_s": 0.00030070001957938075,
+      "ci_95_lower_s": 6.200045754667372e-06,
+      "ci_95_upper_s": 1.800246245693415e-05
+    },
+    "encrypt_throughput": 2162179.713238417,
+    "decrypt_throughput": 2424266.7255569473,
+    "cycles_per_byte_encrypt": 1156.2406143639237,
+    "cycles_per_byte_decrypt": 1031.2396625522524,
+    "memory_stats": {
+      "mean_mb": 1.5625e-05,
+      "max_mb": 0.0078125
+    },
+    "ciphertext_size_bytes": 24,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "chacha20_poly1305",
+    "message_size_bytes": 8,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 1.1088399740401656e-05,
+      "median_s": 4.199973773211241e-06,
+      "std_s": 7.19027226389702e-05,
+      "min_s": 3.7999707274138927e-06,
+      "max_s": 0.002015199977904558,
+      "ci_95_lower_s": 3.8000289350748062e-06,
+      "ci_95_upper_s": 3.300996177131309e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 6.799600610975176e-06,
+      "median_s": 3.700028173625469e-06,
+      "std_s": 1.8485183636713115e-05,
+      "min_s": 3.4999684430658817e-06,
+      "max_s": 0.0003581999917514622,
+      "ci_95_lower_s": 3.4999684430658817e-06,
+      "ci_95_upper_s": 1.750246010487899e-05
+    },
+    "total_stats": {
+      "mean_s": 1.788800035137683e-05,
+      "median_s": 7.90000194683671e-06,
+      "std_s": 7.999928539719453e-05,
+      "min_s": 7.299997378140688e-06,
+      "max_s": 0.0020826999680139124,
+      "ci_95_lower_s": 7.399998139590025e-06,
+      "ci_95_upper_s": 5.8977483422495354e-05
+    },
+    "encrypt_throughput": 1904773.7990714435,
+    "decrypt_throughput": 2162145.6985180755,
+    "cycles_per_byte_encrypt": 1312.4918041285127,
+    "cycles_per_byte_decrypt": 1156.2588042579591,
+    "memory_stats": {
+      "mean_mb": 7.8125e-06,
+      "max_mb": 0.0078125
+    },
+    "ciphertext_size_bytes": 24,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "aes_gcm",
+    "message_size_bytes": 16,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 1.2871299346443266e-05,
+      "median_s": 8.90000956133008e-06,
+      "std_s": 2.6707705200545776e-05,
+      "min_s": 3.7999707274138927e-06,
+      "max_s": 0.0005887000006623566,
+      "ci_95_lower_s": 3.900029696524143e-06,
+      "ci_95_upper_s": 4.20349708292633e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 1.0095200326759368e-05,
+      "median_s": 7.599999662488699e-06,
+      "std_s": 2.5362079444304297e-05,
+      "min_s": 3.4999684430658817e-06,
+      "max_s": 0.0005604000180028379,
+      "ci_95_lower_s": 3.600027412176132e-06,
+      "ci_95_upper_s": 1.8699969223234804e-05
+    },
+    "total_stats": {
+      "mean_s": 2.2966499673202635e-05,
+      "median_s": 1.675001112744212e-05,
+      "std_s": 3.890508602156736e-05,
+      "min_s": 7.399998139590025e-06,
+      "max_s": 0.0006287000142037868,
+      "ci_95_lower_s": 7.599999662488699e-06,
+      "ci_95_upper_s": 7.173746416810896e-05
+    },
+    "encrypt_throughput": 1797750.8776528602,
+    "decrypt_throughput": 2105263.2513881763,
+    "cycles_per_byte_encrypt": 1390.626493957825,
+    "cycles_per_byte_decrypt": 1187.4999472638592,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 32,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "chacha20_poly1305",
+    "message_size_bytes": 16,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 9.24299965845421e-06,
+      "median_s": 5.799985956400633e-06,
+      "std_s": 8.82448754948188e-06,
+      "min_s": 5.099980626255274e-06,
+      "max_s": 0.00013689999468624592,
+      "ci_95_lower_s": 5.299982149153948e-06,
+      "ci_95_upper_s": 2.0599983690772207e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 7.671100727748127e-06,
+      "median_s": 5.100038833916187e-06,
+      "std_s": 8.71102897597615e-06,
+      "min_s": 4.599976819008589e-06,
+      "max_s": 0.0001632000203244388,
+      "ci_95_lower_s": 4.700035788118839e-06,
+      "ci_95_upper_s": 1.3699987903237343e-05
+    },
+    "total_stats": {
+      "mean_s": 1.6914100386202336e-05,
+      "median_s": 1.0899966582655907e-05,
+      "std_s": 1.519862614839919e-05,
+      "min_s": 9.700015652924776e-06,
+      "max_s": 0.0002072000061161816,
+      "ci_95_lower_s": 1.009996049106121e-05,
+      "ci_95_upper_s": 3.680248919408768e-05
+    },
+    "encrypt_throughput": 2758627.3691478577,
+    "decrypt_throughput": 3137231.0135360314,
+    "cycles_per_byte_encrypt": 906.2478056875989,
+    "cycles_per_byte_decrypt": 796.8810677994043,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 32,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "aes_gcm",
+    "message_size_bytes": 32,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 9.904800332151353e-06,
+      "median_s": 5.799985956400633e-06,
+      "std_s": 1.4661381171087155e-05,
+      "min_s": 4.999979864805937e-06,
+      "max_s": 0.0002914000069722533,
+      "ci_95_lower_s": 5.199981387704611e-06,
+      "ci_95_upper_s": 3.6102542071603236e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 7.581999874673784e-06,
+      "median_s": 5.200039595365524e-06,
+      "std_s": 8.96585108120609e-06,
+      "min_s": 4.599976819008589e-06,
+      "max_s": 0.00022639997769147158,
+      "ci_95_lower_s": 4.700035788118839e-06,
+      "ci_95_upper_s": 1.5600002370774746e-05
+    },
+    "total_stats": {
+      "mean_s": 1.7486800206825137e-05,
+      "median_s": 1.09999964479357e-05,
+      "std_s": 2.2193694193191875e-05,
+      "min_s": 9.800016414374113e-06,
+      "max_s": 0.0005177999846637249,
+      "ci_95_lower_s": 9.999959729611874e-06,
+      "ci_95_upper_s": 5.58675179490819e-05
+    },
+    "encrypt_throughput": 5517254.738295715,
+    "decrypt_throughput": 6153799.295782216,
+    "cycles_per_byte_encrypt": 453.12390284379944,
+    "cycles_per_byte_decrypt": 406.2530933879316,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 48,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "chacha20_poly1305",
+    "message_size_bytes": 32,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 1.2469300476368517e-05,
+      "median_s": 7.499998901039362e-06,
+      "std_s": 1.2070891035806392e-05,
+      "min_s": 5.89998671784997e-06,
+      "max_s": 0.00018419994739815593,
+      "ci_95_lower_s": 5.999987479299307e-06,
+      "ci_95_upper_s": 3.9302508230321107e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 1.0329399781767279e-05,
+      "median_s": 6.499991286545992e-06,
+      "std_s": 1.3860205612045777e-05,
+      "min_s": 5.399982910603285e-06,
+      "max_s": 0.000285100017208606,
+      "ci_95_lower_s": 5.499983672052622e-06,
+      "ci_95_upper_s": 2.0299979951232672e-05
+    },
+    "total_stats": {
+      "mean_s": 2.2798700258135797e-05,
+      "median_s": 1.3999990187585354e-05,
+      "std_s": 2.1209082450393094e-05,
+      "min_s": 1.1299969628453255e-05,
+      "max_s": 0.00035069999285042286,
+      "ci_95_lower_s": 1.1499971151351929e-05,
+      "ci_95_upper_s": 7.18125229468569e-05
+    },
+    "encrypt_throughput": 4266667.291853255,
+    "decrypt_throughput": 4923083.522624901,
+    "cycles_per_byte_encrypt": 585.9374141437002,
+    "cycles_per_byte_decrypt": 507.8118192614056,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 48,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "aes_gcm",
+    "message_size_bytes": 64,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 8.25529993744567e-06,
+      "median_s": 6.399990525096655e-06,
+      "std_s": 9.57806306570046e-06,
+      "min_s": 5.799985956400633e-06,
+      "max_s": 0.0002049999893642962,
+      "ci_95_lower_s": 5.900043470319361e-06,
+      "ci_95_upper_s": 1.8902469309978184e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 6.7482994636520744e-06,
+      "median_s": 5.700043402612209e-06,
+      "std_s": 3.760682703416103e-06,
+      "min_s": 5.299982149153948e-06,
+      "max_s": 9.71999834291637e-05,
+      "ci_95_lower_s": 5.400041118264198e-06,
+      "ci_95_upper_s": 1.3499987835530191e-05
+    },
+    "total_stats": {
+      "mean_s": 1.5003599401097745e-05,
+      "median_s": 1.209997572004795e-05,
+      "std_s": 1.1779731206489409e-05,
+      "min_s": 1.1199968867003918e-05,
+      "max_s": 0.00021309999283403158,
+      "ci_95_lower_s": 1.1499971151351929e-05,
+      "ci_95_upper_s": 3.4002467873506245e-05
+    },
+    "encrypt_throughput": 10000014.804558394,
+    "decrypt_throughput": 11227984.68002369,
+    "cycles_per_byte_encrypt": 249.99962988658808,
+    "cycles_per_byte_decrypt": 222.65794541453943,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 80,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "chacha20_poly1305",
+    "message_size_bytes": 64,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 8.022000489290803e-06,
+      "median_s": 6.499991286545992e-06,
+      "std_s": 1.4660018803046622e-05,
+      "min_s": 6.00004568696022e-06,
+      "max_s": 0.00029150000773370266,
+      "ci_95_lower_s": 6.100044993218035e-06,
+      "ci_95_upper_s": 1.133252662839365e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 6.431800022255629e-06,
+      "median_s": 5.900044925510883e-06,
+      "std_s": 4.773552472764636e-06,
+      "min_s": 5.499983672052622e-06,
+      "max_s": 0.00012779998360201716,
+      "ci_95_lower_s": 5.599984433501959e-06,
+      "ci_95_upper_s": 9.102454350795594e-06
+    },
+    "total_stats": {
+      "mean_s": 1.4453800511546433e-05,
+      "median_s": 1.2450007488951087e-05,
+      "std_s": 1.7592766107099035e-05,
+      "min_s": 1.1699972674250603e-05,
+      "max_s": 0.00032750004902482033,
+      "ci_95_lower_s": 1.1899974197149277e-05,
+      "ci_95_upper_s": 2.1299987565726042e-05
+    },
+    "encrypt_throughput": 9846167.045249801,
+    "decrypt_throughput": 10847375.029853396,
+    "cycles_per_byte_encrypt": 253.9059096307028,
+    "cycles_per_byte_decrypt": 230.47050490276888,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 80,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "aes_gcm",
+    "message_size_bytes": 128,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 6.807200203184038e-06,
+      "median_s": 5.700043402612209e-06,
+      "std_s": 8.3107158947139e-06,
+      "min_s": 5.099980626255274e-06,
+      "max_s": 0.00023830001009628177,
+      "ci_95_lower_s": 5.199981387704611e-06,
+      "ci_95_upper_s": 1.0002516501117495e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 6.276299420278519e-06,
+      "median_s": 5.200039595365524e-06,
+      "std_s": 9.985466403198574e-06,
+      "min_s": 4.699977580457926e-06,
+      "max_s": 0.00019540003268048167,
+      "ci_95_lower_s": 4.799978341907263e-06,
+      "ci_95_upper_s": 8.6025072960183e-06
+    },
+    "total_stats": {
+      "mean_s": 1.3083499623462558e-05,
+      "median_s": 1.0950025171041489e-05,
+      "std_s": 1.5582073268101012e-05,
+      "min_s": 9.899958968162537e-06,
+      "max_s": 0.0003871000371873379,
+      "ci_95_lower_s": 1.009996049106121e-05,
+      "ci_95_upper_s": 1.8705024558585134e-05
+    },
+    "encrypt_throughput": 22455969.36004738,
+    "decrypt_throughput": 24615197.183128864,
+    "cycles_per_byte_encrypt": 111.32897270726971,
+    "cycles_per_byte_decrypt": 101.5632733469829,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 144,
+    "overhead_bytes": 16
+  },
+  {
+    "algorithm": "chacha20_poly1305",
+    "message_size_bytes": 128,
+    "runs": 1000,
+    "encrypt_stats": {
+      "mean_s": 7.919300580397249e-06,
+      "median_s": 5.900044925510883e-06,
+      "std_s": 2.158217593973399e-05,
+      "min_s": 5.599984433501959e-06,
+      "max_s": 0.0006307000294327736,
+      "ci_95_lower_s": 5.699985194951296e-06,
+      "ci_95_upper_s": 1.7127514001913342e-05
+    },
+    "decrypt_stats": {
+      "mean_s": 6.134899682365358e-06,
+      "median_s": 5.499983672052622e-06,
+      "std_s": 6.444832490232245e-06,
+      "min_s": 5.099980626255274e-06,
+      "max_s": 0.00018779997481033206,
+      "ci_95_lower_s": 5.200039595365524e-06,
+      "ci_95_upper_s": 1.2702480307780203e-05
+    },
+    "total_stats": {
+      "mean_s": 1.4054200262762605e-05,
+      "median_s": 1.1399970389902592e-05,
+      "std_s": 2.77277510203824e-05,
+      "min_s": 1.0899966582655907e-05,
+      "max_s": 0.0008185000042431056,
+      "ci_95_lower_s": 1.1000025551766157e-05,
+      "ci_95_upper_s": 2.9305047064553943e-05
+    },
+    "encrypt_throughput": 21694750.059706792,
+    "decrypt_throughput": 23272796.36308988,
+    "cycles_per_byte_encrypt": 115.23525245138444,
+    "cycles_per_byte_decrypt": 107.42155609477777,
+    "memory_stats": {
+      "mean_mb": 0.0,
+      "max_mb": 0.0
+    },
+    "ciphertext_size_bytes": 144,
+    "overhead_bytes": 16
+  }
+]

@@ -30,12 +30,29 @@ def load_results(json_path: Path) -> pd.DataFrame:
 
     rows: List[Dict] = []
     for sample in results:
+        # Handle both flat and nested stats structures
+        encrypt_time = sample.get("encrypt_time_s")
+        if encrypt_time is None and "encrypt_stats" in sample:
+            encrypt_time = sample["encrypt_stats"].get("mean_s")
+            
+        compute_time = sample.get("compute_time_s")
+        if compute_time is None and "compute_stats" in sample:
+            compute_time = sample["compute_stats"].get("mean_s")
+            
+        decrypt_time = sample.get("decrypt_time_s")
+        if decrypt_time is None and "decrypt_stats" in sample:
+            decrypt_time = sample["decrypt_stats"].get("mean_s")
+            
+        total_time = sample.get("total_time_s")
+        if total_time is None and encrypt_time is not None and compute_time is not None and decrypt_time is not None:
+            total_time = encrypt_time + compute_time + decrypt_time
+
         record = {
             "task": sample["task"],
-            "encrypt_time_s": sample.get("encrypt_time_s"),
-            "compute_time_s": sample.get("compute_time_s"),
-            "decrypt_time_s": sample.get("decrypt_time_s"),
-            "total_time_s": sample.get("total_time_s"),
+            "encrypt_time_s": encrypt_time,
+            "compute_time_s": compute_time,
+            "decrypt_time_s": decrypt_time,
+            "total_time_s": total_time,
             "max_error": sample.get("max_error"),
             "relative_error": sample.get("relative_error"),
             "expansion_factor": sample.get("expansion_factor"),

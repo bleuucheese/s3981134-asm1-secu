@@ -64,11 +64,15 @@ def check_hypothesis_satisfaction(df: pd.DataFrame) -> Dict:
         recall = row.get('recall_at_10')
         latency_ms = row.get('median_latency_ms')
 
-        meets_recall = (recall is not None and recall >= VECTOR_SEARCH_RECALL_THRESHOLD) or recall is None
-        meets_latency = (latency_ms is not None and latency_ms <= VECTOR_SEARCH_LATENCY_THRESHOLD_MS) or latency_ms is None
+        # Handle NaN/None values safely
+        is_recall_nan = pd.isna(recall)
+        is_latency_nan = pd.isna(latency_ms)
+
+        meets_recall = (not is_recall_nan and recall >= VECTOR_SEARCH_RECALL_THRESHOLD) or is_recall_nan
+        meets_latency = (not is_latency_nan and latency_ms <= VECTOR_SEARCH_LATENCY_THRESHOLD_MS) or is_latency_nan
 
         # For patterns without recall (like HE), mark as N/A
-        if recall is None:
+        if is_recall_nan:
             overall_accept = "N/A (exploratory)"
         else:
             overall_accept = meets_recall and meets_latency
@@ -76,8 +80,8 @@ def check_hypothesis_satisfaction(df: pd.DataFrame) -> Dict:
         results[pattern] = {
             'recall_at_10': recall,
             'median_latency_ms': latency_ms,
-            'meets_recall_threshold': meets_recall if recall is not None else None,
-            'meets_latency_threshold': meets_latency if latency_ms is not None else None,
+            'meets_recall_threshold': meets_recall if not is_recall_nan else None,
+            'meets_latency_threshold': meets_latency if not is_latency_nan else None,
             'overall_accept': overall_accept,
         }
 
@@ -229,10 +233,10 @@ def generate_report(df: pd.DataFrame, hypothesis_results: Dict, output_path: Pat
             status_str = "✓ ACCEPTS" if status else "✗ REJECTS"
             report.append(f"{pattern.replace('_', ' ').title()}: {status_str}")
             
-            if result['recall_at_10'] is not None:
+            if result['recall_at_10'] is not None and not pd.isna(result['recall_at_10']):
                 report.append(f"  - Recall@10: {result['recall_at_10']:.3f} "
                              f"({'meets' if result['meets_recall_threshold'] else 'fails'} threshold)")
-            if result['median_latency_ms'] is not None:
+            if result['median_latency_ms'] is not None and not pd.isna(result['median_latency_ms']):
                 report.append(f"  - Latency: {result['median_latency_ms']:.2f} ms "
                              f"({'meets' if result['meets_latency_threshold'] else 'fails'} threshold)")
         report.append("")
@@ -271,10 +275,10 @@ def main():
     for pattern, result in hypothesis_results.items():
         status = result['overall_accept']
         print(f"  {pattern.replace('_', ' ').title()}: {status}")
-        if result['recall_at_10'] is not None:
+        if result['recall_at_10'] is not None and not pd.isna(result['recall_at_10']):
             print(f"    Recall@10: {result['recall_at_10']:.3f} "
                   f"(threshold: >={VECTOR_SEARCH_RECALL_THRESHOLD})")
-        if result['median_latency_ms'] is not None:
+        if result['median_latency_ms'] is not None and not pd.isna(result['median_latency_ms']):
             print(f"    Latency: {result['median_latency_ms']:.2f} ms "
                   f"(threshold: <={VECTOR_SEARCH_LATENCY_THRESHOLD_MS} ms)")
     print()

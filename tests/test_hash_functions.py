@@ -390,7 +390,7 @@ def verify_test_vectors():
         (b"", "sha3_256", "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"),
         (b"abc", "sha3_256", "3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532"),
         (b"", "blake3", "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262"),
-        (b"abc", "blake3", "6437b3ac38465133ffb63e752534a25432b5d8d7f676c9ec2b80e466c5798f51"),
+        (b"abc", "blake3", "6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85"),
     ]
 
     passed = 0

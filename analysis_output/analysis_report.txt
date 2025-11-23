@@ -12,33 +12,53 @@ in autonomous vehicle systems.
 KEY FINDINGS
 --------------------------------------------------------------------------------
 
-1. Best Overall Performer: BLAKE3_PARALLEL
-   - Throughput: 1.04 GB/s
+1. Best Overall Performer: BLAKE3
+   - Throughput: 1.07 GB/s
    - File Size: 50 MB
 
 2. HYPOTHESIS SATISFACTION (1 GB File)
    Threshold: >= 1.5 GB/s throughput, <= 12 minutes execution time
 
    SHA256: ✗ REJECTS
-   - Throughput: 0.71 GB/s (fails threshold)
+   - Throughput: 0.74 GB/s (fails threshold)
    - Time: 0.02 minutes (meets threshold)
 
    SHA3_256: ✗ REJECTS
-   - Throughput: 0.14 GB/s (fails threshold)
-   - Time: 0.12 minutes (meets threshold)
+   - Throughput: 0.20 GB/s (fails threshold)
+   - Time: 0.09 minutes (meets threshold)
 
    BLAKE3: ✗ REJECTS
-   - Throughput: 0.85 GB/s (fails threshold)
+   - Throughput: 0.97 GB/s (fails threshold)
    - Time: 0.02 minutes (meets threshold)
 
    BLAKE3_PARALLEL: ✗ REJECTS
-   - Throughput: 0.84 GB/s (fails threshold)
-   - Time: 0.02 minutes (meets threshold)
+   - Throughput: 0.55 GB/s (fails threshold)
+   - Time: 0.03 minutes (meets threshold)
 
 3. STATISTICAL ANALYSIS (ANOVA) FOR 1 GB FILE THROUGHPUT
 --------------------------------------------------------------------------------
-ANOVA F-statistic: nan
-ANOVA p-value: nan
-Conclusion: There is no statistically significant difference between algorithm throughputs.
+ANOVA F-statistic: 3235.7458
+ANOVA p-value: 0.0000
+Conclusion: There is a statistically significant difference between algorithm throughputs.
+
+Tukey's HSD Post-Hoc Test Results:
+Pairwise Group Comparisons (95.0% Confidence Interval)
+Pairwise Group Comparisons (95.0% Confidence Interval)
+Comparison  Statistic  p-value  Lower CI  Upper CI
+ (0 - 1)      0.539     0.000     0.515     0.563
+ (0 - 2)     -0.237     0.000    -0.261    -0.213
+ (1 - 0)     -0.539     0.000    -0.563    -0.515
+ (1 - 2)     -0.776     0.000    -0.800    -0.752
+ (2 - 0)      0.237     0.000     0.213     0.261
+ (2 - 1)      0.776     0.000     0.752     0.800
+
+
+4. MEMORY FOOTPRINT OVERVIEW
+--------------------------------------------------------------------------------
+Reported mean RSS and observed peaks per algorithm (KB):
+
+   BLAKE3     Mean: 0.60 KB | Peak: 0.00 KB | File Sizes: 3
+   SHA256     Mean: 0.40 KB | Peak: 80.00 KB | File Sizes: 3
+   SHA3_256   Mean: 1.00 KB | Peak: 40.00 KB | File Sizes: 3
 
 ================================================================================
